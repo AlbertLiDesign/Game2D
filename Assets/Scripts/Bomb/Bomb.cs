@@ -28,12 +28,14 @@ public class Bomb : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Time.time>startTime + waitTime)
+        if (!anim.GetCurrentAnimatorStateInfo(0).IsName("Bomb_off"))
         {
-            // 计时器结束，引爆炸弹
-            anim.Play("Explotion");
+            if (Time.time > startTime + waitTime)
+            {
+                // 计时器结束，引爆炸弹
+                anim.Play("Explotion");
+            }
         }
-
     }
 
     public void OnDrawGizmos()
@@ -61,6 +63,12 @@ public class Bomb : MonoBehaviour
             Vector3 pos = transform.position - item.transform.position;
             // 为每一个被炸物体添加一个冲击力
             item.GetComponent<Rigidbody2D>().AddForce((-pos + Vector3.up) * bombForce, ForceMode2D.Impulse);
+
+            // 爆炸可以引燃另一个被关闭的炸弹
+            if (item.CompareTag("Bomb") && item.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Bomb_off"))
+            {
+                item.GetComponent<Bomb>().TurnOn();
+            }
         }
     }
 
@@ -68,5 +76,18 @@ public class Bomb : MonoBehaviour
     public void DestroyBomb()
     {
         Destroy(gameObject);
+    }
+
+    public void TurnOff()
+    {
+        anim.Play("Bomb_off");
+        gameObject.layer = LayerMask.NameToLayer("NPC");
+    }
+
+    public void TurnOn()
+    {
+        startTime = Time.time;
+        anim.Play("Bomb_on");
+        gameObject.layer = LayerMask.NameToLayer("Bomb");
     }
 }

@@ -24,8 +24,13 @@ public class PlayerController : MonoBehaviour
     public LayerMask GroundLayer; // 检测图层
 
     [Header("Jump FX")]
-    public GameObject jumpFX;
-    public GameObject landFX;
+    public GameObject jumpFX; // 跳跃特效
+    public GameObject landFX; // 落地特效
+
+    [Header("Attack Settings")]
+    public GameObject bombPrefab;
+    public float nextAttack = 0.0f; // 下次允许攻击的时间
+    public float attackRate; // 技能CD
 
     // 游戏一开始的时候执行的函数
     void Start()
@@ -52,9 +57,14 @@ public class PlayerController : MonoBehaviour
     {
         // 如果用户按下了跳跃键按键且处于地面时
         // Jump已经在unity中的Input Manager中定义好了，默认使用空格键
-        if (Input.GetButtonDown("Jump") && isGround)
+        if (Input.GetKeyDown(KeyCode.K) && isGround)
         {
             canJump = true;
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            Attack();
         }
     }
 
@@ -98,6 +108,19 @@ public class PlayerController : MonoBehaviour
 
             // 更改重力，为了快速下降，重力增加
             rb.gravityScale = gravityLevel;
+        }
+    }
+
+    public void Attack()
+    {
+        // 当前时间大于下次一可攻击的时间（技能有CD）
+        if (Time.time > nextAttack)
+        {
+            // Instantiate将gameobject在场景中生成
+            Instantiate(bombPrefab, transform.position, bombPrefab.transform.rotation);
+
+            // 当前攻击时间+攻击间隔即为下次可攻击时间
+            nextAttack = Time.time + attackRate;
         }
     }
 
