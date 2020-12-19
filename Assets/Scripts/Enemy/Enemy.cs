@@ -10,11 +10,17 @@ public class Enemy : MonoBehaviour
     // 动画状态
     public int animState;
 
+    private GameObject alarmSign;
+
     [Header("Attack Setting")]
     public float attackRate, skillRate; // 普通攻击间隔，技能攻击间隔
     public float attackRange, skillRange; // 普通攻击距离与技能攻击距离
     private float nextAttack = 0.0f;
     private float nextSkill = 0.0f;
+
+    [Header("Base State")]
+    public float health; // 生命值
+    public bool isDead; // 是否死亡
 
     [Header("Movement")]
     public float speed;
@@ -35,6 +41,8 @@ public class Enemy : MonoBehaviour
     public virtual void Init()
     {
         anim = GetComponent<Animator>();
+        // 获取警告标识
+        alarmSign = transform.GetChild(0).gameObject;
     }
 
     // Awake优先于Start调用
@@ -52,6 +60,13 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        anim.SetBool("dead", isDead);
+
+        if (isDead)
+        {
+            return;
+        }
+
         // 执行巡逻状态
         currentState.OnUpdate(this);
         // 每一帧都检查当前的参数
@@ -134,7 +149,7 @@ public class Enemy : MonoBehaviour
 
     public void OnTriggerStay2D(Collider2D collision)
     {
-        // 如果第一次看到玩家，那么设为攻击目标
+        // 如果第一次看到目标，那么设为攻击目标
         if (!attackList.Contains(collision.transform))
         {
             attackList.Add(collision.transform);
@@ -145,5 +160,27 @@ public class Enemy : MonoBehaviour
     public void OnTriggerExit2D(Collider2D collision)
     {
         attackList.Remove(collision.transform);
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        anim.SetBool("dead", isDead);
+
+        if (isDead)
+        {
+            return;
+        }
+        // 刚进入检测范围时，发出警告
+        StartCoroutine(onAlarm());
+    }
+
+    // 协程处理
+    IEnumerator onAlarm()
+    {
+        alarmSign.SetActive(true);
+
+        yield return new WaitForSeconds(
+            alarmSign.GetComponent<Animator>()
+            .GetCurrentAnimatorClipInfo(0)[0].clip.length);
+        alarmSign.SetActive(false);
     }
 }

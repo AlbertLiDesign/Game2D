@@ -8,7 +8,8 @@ public class HitPoint : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player get hurt");
+            // 普通攻击造成20点伤害
+            other.GetComponent<IDamageable>().GetHit(20);
         }
 
         if (other.CompareTag("Bomb"))

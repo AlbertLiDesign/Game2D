@@ -69,6 +69,18 @@ public class Bomb : MonoBehaviour
             {
                 item.GetComponent<Bomb>().TurnOn();
             }
+
+            if (item.CompareTag("Player"))
+            {
+                // 炸弹炸到主角掉10滴血
+                item.GetComponent<IDamageable>().GetHit(10);
+            }
+            if (item.CompareTag("Enemy"))
+            {
+
+                // 炸弹炸到怪物掉60滴血
+                item.GetComponent<IDamageable>().GetHit(60);
+            }
         }
     }
 

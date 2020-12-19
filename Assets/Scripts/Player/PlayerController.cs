@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 {
     // private变量不会显式表现出来
     // 获得人物刚体
     private Rigidbody2D rb;
+    private Animator anim;
 
     // 横向移动
     public float speed; // 横向移动速度
@@ -32,22 +33,40 @@ public class PlayerController : MonoBehaviour
     public float nextAttack = 0.0f; // 下次允许攻击的时间
     public float attackRate; // 技能CD
 
+    [Header("Player State")]
+    public float health; // 生命值
+    public bool isDead; // 是否死亡
+
+
     // 游戏一开始的时候执行的函数
     void Start()
     {
         // 获得为人物手动添加的rigidbody
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
     }
 
     // 每一帧执行的函数，一般用来接收输入
     void Update()
     {
+        anim.SetBool("dead", isDead);
+        if (isDead)
+        {
+            // 如果死亡，直接停止
+            return;
+        }
         CheckInput();
     }
 
     // 按秒执行，一秒执行50次，跟物理有关的执行方法放在FixedUpdate()
     public void FixedUpdate()
     {
+        // 如果死亡，速度归0
+        if (isDead)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
         PhysicsCheck();
         Movement();
         Jump();
@@ -148,5 +167,20 @@ public class PlayerController : MonoBehaviour
     public void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(groundCheck.position, checkRadius);
+    }
+
+    public void GetHit(float damage)
+    {
+        // 获取动画图层第一层中的hit动画，受伤短暂无敌
+        if (!anim.GetCurrentAnimatorStateInfo(1).IsName("Player_Hit"))
+        {
+            health -= damage;
+            if (health < 1)
+            {
+                health = 0;
+                isDead = true;
+            }
+            anim.SetTrigger("hit");
+        }
     }
 }
