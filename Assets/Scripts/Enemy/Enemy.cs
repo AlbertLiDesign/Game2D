@@ -21,6 +21,7 @@ public class Enemy : MonoBehaviour
     [Header("Base State")]
     public float health; // 生命值
     public bool isDead; // 是否死亡
+    public bool hasBomb; // 已经拿起炸弹的状态
 
     [Header("Movement")]
     public float speed;
@@ -58,7 +59,7 @@ public class Enemy : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public virtual void Update()
     {
         anim.SetBool("dead", isDead);
 
@@ -90,7 +91,7 @@ public class Enemy : MonoBehaviour
     }
 
     // 普通攻击，加入virtual关键字使其子类可以修改该方法
-    public virtual void AttackAction()
+    public void AttackAction()
     {
         // 如果玩家位于攻击范围内
         if (Vector2.Distance(transform.position, targetPoint.position)<attackRange)
@@ -150,7 +151,7 @@ public class Enemy : MonoBehaviour
     public void OnTriggerStay2D(Collider2D collision)
     {
         // 如果第一次看到目标，那么设为攻击目标
-        if (!attackList.Contains(collision.transform))
+        if (!attackList.Contains(collision.transform) && !hasBomb && !isDead)
         {
             attackList.Add(collision.transform);
         }
@@ -163,14 +164,12 @@ public class Enemy : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        anim.SetBool("dead", isDead);
-
-        if (isDead)
+        if (!isDead)
         {
-            return;
+            // 刚进入检测范围时，发出警告
+            StartCoroutine(onAlarm());
         }
-        // 刚进入检测范围时，发出警告
-        StartCoroutine(onAlarm());
+
     }
 
     // 协程处理

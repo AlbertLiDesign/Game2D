@@ -13,6 +13,11 @@ public class AttackState : EnemyBaseState
 
     public override void OnUpdate(Enemy enemy)
     {
+        // 如果已经持有炸弹了，就不再判定炸弹
+        if (enemy.hasBomb)
+        {
+            return;
+        }
         // 如果没有人了，就切换回巡逻状态
         if (enemy.attackList.Count == 0)
         {
