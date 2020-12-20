@@ -44,6 +44,12 @@ public class PlayerController : MonoBehaviour, IDamageable
         // 获得为人物手动添加的rigidbody
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+
+        GameManager.instance.IsPlayer(this);
+
+        health = GameManager.instance.LoadHealth();
+        // 更新血量
+        UIManager.instance.UpdateHealth(health);
     }
 
     // 每一帧执行的函数，一般用来接收输入
@@ -181,6 +187,9 @@ public class PlayerController : MonoBehaviour, IDamageable
                 isDead = true;
             }
             anim.SetTrigger("hit");
+
+            // 更新血量
+            UIManager.instance.UpdateHealth(health);
         }
     }
 }

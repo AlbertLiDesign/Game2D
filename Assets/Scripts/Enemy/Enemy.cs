@@ -5,7 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     EnemyBaseState currentState;
-
+    public bool isBoss;
     public Animator anim;
     // 动画状态
     public int animState;
@@ -13,8 +13,11 @@ public class Enemy : MonoBehaviour
     private GameObject alarmSign;
 
     [Header("Attack Setting")]
-    public float attackRate, skillRate; // 普通攻击间隔，技能攻击间隔
-    public float attackRange, skillRange; // 普通攻击距离与技能攻击距离
+    public float attackRate; // 普通攻击间隔
+    public float attackRange; // 普通攻击距离
+    public float skillRate; // 技能攻击间隔
+    public float skillRange; // 技能攻击距离
+
     private float nextAttack = 0.0f;
     private float nextSkill = 0.0f;
 
@@ -50,12 +53,20 @@ public class Enemy : MonoBehaviour
     public void Awake()
     {
         Init();
+
     }
     // Start is called before the first frame update
     void Start()
     {
+        // 注册敌人
+        GameManager.instance.IsEnemy(this);
         // 开始巡逻状态
         TransitionToState(patrolState);
+
+        if (isBoss)
+        {
+            UIManager.instance.SetBossHealth(health);
+        }
     }
 
     // Update is called once per frame
@@ -65,6 +76,8 @@ public class Enemy : MonoBehaviour
 
         if (isDead)
         {
+            // 敌人死后从敌人列表中移除
+            GameManager.instance.EnemyDead(this);
             return;
         }
 
@@ -72,6 +85,11 @@ public class Enemy : MonoBehaviour
         currentState.OnUpdate(this);
         // 每一帧都检查当前的参数
         anim.SetInteger("state", animState);
+
+        if (isBoss)
+        {
+            UIManager.instance.UpdateBossHealth(health);
+        }
     }
 
     // 变换当前状态
@@ -151,7 +169,8 @@ public class Enemy : MonoBehaviour
     public void OnTriggerStay2D(Collider2D collision)
     {
         // 如果第一次看到目标，那么设为攻击目标
-        if (!attackList.Contains(collision.transform) && !hasBomb && !isDead)
+        if (!attackList.Contains(collision.transform) && !hasBomb && !isDead
+            && !GameManager.instance.gameOver)
         {
             attackList.Add(collision.transform);
         }
@@ -164,7 +183,7 @@ public class Enemy : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!isDead)
+        if (!isDead && !GameManager.instance.gameOver)
         {
             // 刚进入检测范围时，发出警告
             StartCoroutine(onAlarm());
