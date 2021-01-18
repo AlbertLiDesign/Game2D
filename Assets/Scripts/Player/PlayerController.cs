@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     // 获得人物刚体
     private Rigidbody2D rb;
     private Animator anim;
+    private FixedJoystick joystick;
 
     // 横向移动
     public float speed; // 横向移动速度
@@ -37,6 +38,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     public float health; // 生命值
     public bool isDead; // 是否死亡
 
+    private float nextJump = 0.0f; // 下次允许跳跃的时间
+    private float JumpCD = 0.2f; // 跳跃CD
+
 
     // 游戏一开始的时候执行的函数
     void Start()
@@ -44,6 +48,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         // 获得为人物手动添加的rigidbody
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        joystick = FindObjectOfType<FixedJoystick>();
 
         GameManager.instance.IsPlayer(this);
 
@@ -82,8 +87,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         // 如果用户按下了跳跃键按键且处于地面时
         // Jump已经在unity中的Input Manager中定义好了，默认使用空格键
-        if (Input.GetKeyDown(KeyCode.K) && isGround)
+        if (Input.GetKeyDown(KeyCode.K) && isGround && Time.time > nextJump)
         {
+            nextJump = Time.time + JumpCD;
             canJump = true;
         }
 
@@ -101,6 +107,9 @@ public class PlayerController : MonoBehaviour, IDamageable
         float horizontalInput = Input.GetAxis("Horizontal"); // -1 ~ 1 包括小数
         //float horizontalInput = Input.GetAxisRaw("Horizontal"); // -1 ~ 1 不包括小数
 
+        // 操纵杆操作
+        //float horizontalInput = joystick.Horizontal;
+
         // 定义小人左右移动，移动速度 = horizontalInput * speed，y方向（跳跃方向）移动时值不变
         rb.velocity = new Vector2(horizontalInput * speed, rb.velocity.y);
 
@@ -115,6 +124,14 @@ public class PlayerController : MonoBehaviour, IDamageable
     #endregion
 
     // 跳跃方法
+    public void JumpButton()
+    {
+        if (isGround && Time.time > nextJump)
+        {
+            nextJump = Time.time + JumpCD;
+            canJump = true;
+        }
+    }
     void Jump()
     {
         if (canJump)

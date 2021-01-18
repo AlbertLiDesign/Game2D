@@ -55,6 +55,8 @@ public class GameManager : MonoBehaviour
     {
         // 回到主菜单
         SceneManager.LoadScene(0);
+        // 游戏恢复
+        Time.timeScale = 1;
     }
 
     // 重启场景
